@@ -1,0 +1,34 @@
+{
+  "name": "telehealth-saas-platform",
+  "version": "1.0.0",
+  "description": "HIPAA-compliant telehealth SaaS platform with video calls and patient monitoring",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm install --workspace=backend && npm install --workspace=frontend",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build:backend": "npm run build --workspace=backend",
+    "build:frontend": "npm run build --workspace=frontend",
+    "build": "npm run build:backend && npm run build:frontend",
+    "test": "npm run test --workspace=backend && npm run test --workspace=frontend",
+    "lint": "npm run lint --workspace=backend && npm run lint --workspace=frontend"
+  },
+  "keywords": [
+    "telehealth",
+    "telemedicine",
+    "video-calls",
+    "patient-monitoring",
+    "hipaa-compliance",
+    "saas"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
