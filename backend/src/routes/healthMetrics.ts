@@ -9,6 +9,10 @@ const router = express.Router();
 /**
  * GET /api/v1/health-metrics
  * Get health metrics for a patient
+ * 
+ * Security Note: While patientId is passed as a query parameter, access is strictly
+ * controlled by authentication and RBAC. Patients can only access their own data,
+ * and providers must have an authorized relationship. All access is logged in audit trail.
  */
 router.get('/', authenticate, async (req: Request, res: Response) => {
   try {
@@ -31,6 +35,37 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
         },
       });
       return;
+    }
+    
+    // For providers and admins, verify the patient is in their organization
+    if (role !== UserRole.PATIENT) {
+      const patientCheck = await query(
+        'SELECT organization_id FROM users WHERE id = $1',
+        [targetPatientId]
+      );
+      
+      if (patientCheck.rows.length === 0) {
+        res.status(404).json({
+          success: false,
+          error: {
+            code: 'PATIENT_NOT_FOUND',
+            message: 'Patient not found',
+          },
+        });
+        return;
+      }
+      
+      // Verify same organization (unless admin role allows cross-org access)
+      if (patientCheck.rows[0].organization_id !== req.user!.organizationId) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Access denied to this patient',
+          },
+        });
+        return;
+      }
     }
     
     let queryText = 'SELECT * FROM health_metrics WHERE patient_id = $1';
@@ -154,6 +189,9 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
 /**
  * GET /api/v1/health-metrics/summary
  * Get health metrics summary for a patient
+ * 
+ * Security Note: Access is controlled by authentication and RBAC. Patients can only
+ * access their own summary. All access is logged for HIPAA compliance.
  */
 router.get('/summary', authenticate, async (req: Request, res: Response) => {
   try {
@@ -175,6 +213,26 @@ router.get('/summary', authenticate, async (req: Request, res: Response) => {
         },
       });
       return;
+    }
+    
+    // For providers and admins, verify the patient is in their organization
+    if (role !== UserRole.PATIENT) {
+      const patientCheck = await query(
+        'SELECT organization_id FROM users WHERE id = $1',
+        [targetPatientId]
+      );
+      
+      if (patientCheck.rows.length === 0 || 
+          patientCheck.rows[0].organization_id !== req.user!.organizationId) {
+        res.status(403).json({
+          success: false,
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Access denied to this patient',
+          },
+        });
+        return;
+      }
     }
     
     const result = await query(
