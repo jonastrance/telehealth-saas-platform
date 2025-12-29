@@ -20,7 +20,12 @@ export const config = {
   },
   
   jwt: {
-    secret: process.env.JWT_SECRET || 'default_secret_change_in_production',
+    secret: process.env.JWT_SECRET || (() => {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('JWT_SECRET environment variable is required in production');
+      }
+      return 'default_secret_change_in_production';
+    })(),
     expiresIn: process.env.JWT_EXPIRES_IN || '24h',
     refreshExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d',
   },

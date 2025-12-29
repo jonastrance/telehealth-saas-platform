@@ -47,7 +47,9 @@ export const VideoCall: React.FC<VideoCallProps> = ({ roomId, onLeave }) => {
 
       // Connect to signaling server
       const token = localStorage.getItem('accessToken');
-      const ws = new WebSocket(`ws://localhost:5000/video-signal?token=${token}`);
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const host = window.location.host.includes('localhost') ? 'localhost:5000' : window.location.host;
+      const ws = new WebSocket(`${protocol}//${host}/video-signal?token=${token}`);
       
       ws.onopen = () => {
         setIsConnected(true);
@@ -69,7 +71,10 @@ export const VideoCall: React.FC<VideoCallProps> = ({ roomId, onLeave }) => {
       wsRef.current = ws;
     } catch (error) {
       console.error('Error initializing video call:', error);
-      alert('Failed to access camera/microphone. Please check permissions.');
+      // In production, this should use a proper toast/notification component
+      if (window.confirm('Failed to access camera/microphone. Please check permissions. Return to dashboard?')) {
+        onLeave();
+      }
     }
   };
 

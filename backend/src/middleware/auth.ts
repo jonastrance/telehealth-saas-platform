@@ -45,7 +45,7 @@ export const authenticate = (
     logAuditEvent(
       decoded.userId,
       'API_ACCESS',
-      req.path,
+      req.originalUrl || req.path,
       '',
       req.ip || '',
       req.headers['user-agent'] || '',

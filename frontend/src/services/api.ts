@@ -3,6 +3,11 @@ import type { ApiResponse, AuthTokens, User } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
+// Warn if API URL is not configured in production
+if (import.meta.env.PROD && import.meta.env.VITE_API_URL === undefined) {
+  console.warn('VITE_API_URL not configured. Using default /api/v1');
+}
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
